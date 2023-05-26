@@ -6,7 +6,8 @@
   "scripts": {
     "start": "pm2 start app.js --name table-tap-games",
     "stop": "pm2 delete table-tap-games",
-    "restart": "npm stop && npm start"
+    "restart": "npm stop && npm start",
+    "dump": "node tools/codeDumpTool.js"
   },
   "keywords": [
     "pwa",
@@ -18,6 +19,7 @@
   "dependencies": {
     "ejs": "^3.1.9",
     "express": "^4.18.2",
-    "pm2": "^5.3.0"
+    "pm2": "^5.3.0",
+    "potrace": "^2.1.8"
   }
 }

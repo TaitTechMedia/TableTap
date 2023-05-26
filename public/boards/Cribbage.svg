@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="500" height="150" viewBox="0 0 500 150">
+  <!-- Board background -->
+  <rect x="0" y="0" width="500" height="150" fill="#8B4513" />
+  
+  <!-- Main board -->
+  <rect x="50" y="50" width="400" height="50" fill="#6B8E23" stroke="#000" stroke-width="2" />
+  
+  <!-- Track lines -->
+  <line x1="50" y1="75" x2="450" y2="75" stroke="#FFF" stroke-width="2" />
+  <line x1="50" y1="25" x2="50" y2="125" stroke="#FFF" stroke-width="2" />
+  <line x1="450" y1="25" x2="450" y2="125" stroke="#FFF" stroke-width="2" />
+  
+  <!-- Scoring holes -->
+  <circle cx="75" cy="75" r="5" fill="#FFF" />
+  <circle cx="125" cy="75" r="5" fill="#FFF" />
+  <circle cx="175" cy="75" r="5" fill="#FFF" />
+  <circle cx="225" cy="75" r="5" fill="#FFF" />
+  <circle cx="275" cy="75" r="5" fill="#FFF" />
+  <circle cx="325" cy="75" r="5" fill="#FFF" />
+  <circle cx="375" cy="75" r="5" fill="#FFF" />
+  
+  <!-- Player pegs -->
+  <circle cx="75" cy="75" r="8" fill="#FF0000" />
+  <circle cx="125" cy="75" r="8" fill="#00FF00" />
+  
+  <!-- Crib pegs -->
+  <circle cx="375" cy="75" r="8" fill="#FFFF00" />
+</svg>
