@@ -1,0 +1,7 @@
+{
+  "name": "TableTap",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
