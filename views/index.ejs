@@ -1,0 +1,66 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Boards</title>
+  <link rel="stylesheet" type="text/css" href="/styles.css">
+  <style>
+    .back-button {
+      position: fixed;
+      top: 10px;
+      left: 10px;
+      z-index: 99999;
+      display: none;
+      cursor: pointer;
+    }
+    .back-button.show {
+      display: block;
+    }
+  </style>
+</head>
+<body>
+  <div id="board-container">
+    <% boardImages.forEach(image => { %>
+      <div class="board">
+        <img src="/boards/<%= image %>" alt="Board Image" />
+      </div>
+    <% }); %>
+  </div>
+
+  <div id="back-button" class="back-button">
+    <img src="/resources/back-button.png" alt="Back Button" width="75px" height="75px">
+  </div>
+
+  <script>
+    const boards = document.querySelectorAll('.board');
+    let timeout; // Declare timeout variable outside event listeners
+    let isFullScreen = false; // Track full-screen state
+    let fullScreenBoard = null; // Track the full-screen board
+
+    boards.forEach(board => {
+        board.addEventListener('click', () => {
+            if (isFullScreen) {
+                fullScreenBoard.remove();
+                document.getElementById('back-button').classList.remove('show');
+                clearTimeout(timeout);
+                isFullScreen = false;
+            } else {
+                fullScreenBoard = board.cloneNode(true);
+                fullScreenBoard.classList.add('full-screen');
+                document.body.appendChild(fullScreenBoard);
+                document.getElementById('back-button').classList.add('show');
+                isFullScreen = true;
+            }
+        });
+    });
+
+    document.getElementById('back-button').addEventListener('click', () => {
+    if (isFullScreen) {
+        fullScreenBoard.remove();
+        document.getElementById('back-button').classList.remove('show');
+        clearTimeout(timeout);
+        isFullScreen = false;
+        }
+    });
+  </script>
+</body>
+</html>
