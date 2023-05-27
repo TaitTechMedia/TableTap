@@ -1,0 +1,21 @@
+{
+    "name": "TableTap",
+    "short_name": "TableTap",
+    "description": "PWA that displays images from the 'boards' folder",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#222831",
+    "theme_color": "#00adb5",
+    "icons": [
+      {
+        "src": "resources/icons/tabletap192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "resources/icons/tabletap512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }  

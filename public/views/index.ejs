@@ -3,6 +3,18 @@
 <head>
   <title>Boards</title>
   <link rel="stylesheet" type="text/css" href="/styles.css">
+  <link rel="manifest" href="/manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('Service Worker registered');
+      })
+      .catch((error) => {
+        console.error('Error registering Service Worker:', error);
+      });
+  }
+</script>
 </head>
 <body>
   <div class="title">TableTap</div>

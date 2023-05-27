@@ -11,9 +11,14 @@ const app = express();
 // Serve static files from the 'public' directory
 app.use(express.static('public'));
 
+// Load Service Worker
+app.get('/service-worker.js', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'service-worker.js'));
+});
+
 // Set up EJS as the view engine
 app.set('view engine', 'ejs');
-app.set('views', path.join(__dirname, 'views'));
+app.set('views', path.join(__dirname, 'public', 'views'));
 
 // Read the images from the 'boards' directory
 const boardsDirectory = path.join(__dirname, 'public', 'boards');
