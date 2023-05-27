@@ -1,12 +1,10 @@
-// Name of the cache
-const CACHE_NAME = 'my-cache-v1';
-// Files to cache
+// Update the cache name when the service worker changes.
+const CACHE_NAME = 'my-cache-v2'; 
 const urlsToCache = [
   '/'
 ];
 
 self.addEventListener('install', function(event) {
-  // Perform install steps
   event.waitUntil(
     caches.open(CACHE_NAME)
       .then(function(cache) {
@@ -17,50 +15,82 @@ self.addEventListener('install', function(event) {
 });
 
 self.addEventListener('fetch', function(event) {
-  event.respondWith(
-    caches.match(event.request)
-      .then(function(response) {
-        // Cache hit - return response
-        if (response) {
+  // Check if the request is for the 'boards' directory or its subdirectories
+  if (event.request.url.includes('boards')) {
+    // Fetch the new data and cache it
+    event.respondWith(
+      fetch(event.request).then(function(response) {
+        // Check if we received a valid response
+        if (!response || response.status !== 200 || response.type !== 'basic') {
           return response;
         }
-        return fetch(event.request).then(
-          function(response) {
-            // Check if we received a valid response
-            if(!response || response.status !== 200 || response.type !== 'basic') {
-              return response;
-            }
 
-            // IMPORTANT: Clone the response. A response is a stream
-            // and because we want the browser to consume the response
-            // as well as the cache consuming the response, we need
-            // to clone it so we have two streams.
-            var responseToCache = response.clone();
+        // Clone the response for caching
+        var responseToCache = response.clone();
 
-            caches.open(CACHE_NAME)
-              .then(function(cache) {
-                cache.put(event.request, responseToCache);
-              });
+        // Open the cache and store the new response
+        caches.open(CACHE_NAME)
+          .then(function(cache) {
+            cache.put(event.request, responseToCache);
+          });
 
-            return response;
-          }
-        );
+        return response;
       })
     );
+  } else {
+    // Handle fetch events for URLs that aren't in the 'boards' directory or its subdirectories
+    event.respondWith(
+      caches.match(event.request)
+        .then(function(response) {
+          // Cache hit - return response
+          if (response) {
+            return response;
+          }
+          return fetch(event.request).then(
+            function(response) {
+              // Check if we received a valid response
+              if(!response || response.status !== 200 || response.type !== 'basic') {
+                return response;
+              }
+
+              // Clone the response for caching
+              var responseToCache = response.clone();
+
+              caches.open(CACHE_NAME)
+                .then(function(cache) {
+                  cache.put(event.request, responseToCache);
+                });
+
+              return response;
+            }
+          );
+        })
+      );
+  }
 });
 
 self.addEventListener('activate', function(event) {
-  var cacheWhitelist = ['my-cache-v1'];
+  // Define a list of the caches you want to keep.
+  var cacheWhitelist = [CACHE_NAME];
 
   event.waitUntil(
     caches.keys().then(function(cacheNames) {
       return Promise.all(
         cacheNames.map(function(cacheName) {
+          // Delete the caches that aren't in your whitelist.
           if (cacheWhitelist.indexOf(cacheName) === -1) {
             return caches.delete(cacheName);
           }
         })
       );
+    }).then(() => {
+      // After the activation and claiming is complete, force a page refresh.
+      if (self.clients.claim) {
+        self.clients.claim();
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => client.navigate(client.url))
+        });
+      }
     })
   );
 });
