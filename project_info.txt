@@ -1,0 +1,753 @@
+--- Directory Chart ---
+../TODO.md
+../app.js
+../package.json
+../public/boards/Chess/Chess.svg
+../public/boards/Chess/modal.json
+../public/boards/Gin Rummy/Gin Rummy.svg
+../public/boards/Gin Rummy/modal.json
+../public/boards/Go/Go.svg
+../public/boards/Go/modal.json
+../public/manifest.json
+../public/resources/back-button.svg
+../public/resources/game-modal.svg
+../public/resources/icons/tabletap192.png
+../public/resources/icons/tabletap512.png
+../public/styles.css
+../public/views/index.ejs
+../service-worker.js
+codeDumpTool.js
+
+--- Code ---
+/* /Users/atgehrhardt/Dev/TableTap/TODO.md */
+- Add gitignore for TODO.md and tools directory
+
+- Cache conditions seem to check for /boards url to update the boards, but I need a way to do this with paths. The entire site works
+    off the base URL, so there is no boards url. I could just cache the entire site as it is less than a MB. I wonder if I should rethink how this is built though. With current planned funcitonality, we can load in ALL logic and all baords easily, but if we decide to add functionality, this could pose an issue. 
+        - Need to look into loading pieces of code only when something is clicked and splitting the needed logic into JS modules that ONLY get loaded when they are needed and unloaded when not needed. Ideally I keep everything small and efficient though, as I want to be able to cache the entire app anyways, but this will help if I decide to implement any online multiplayer or leaderboard functionality that has no business being cached.
+
+- Add a mechanism to add your own games if you have PWA installed and make sure clearing cache, doesn't affect this (including manually
+    clearing Chrome cookies)?
+
+- Branding:
+    - Define official color pallete
+    - Design Logos
+        - Large Logo
+        - Small Logo
+            - Add this to manifest.json
+            - Generate a favicon
+
+- UX/UI
+    - Add animations to boards opening and closing
+
+/* /Users/atgehrhardt/Dev/TableTap/app.js */
+/* /Users/atgehrhardt/Dev/TableTap/app.js */
+const express = require('express');
+const fs = require('fs');
+const path = require('path');
+const util = require('util');
+
+const readFile = util.promisify(fs.readFile);
+
+const app = express();
+
+// Serve static files from the 'public' directory
+app.use(express.static('public'));
+
+// Load Service Worker
+app.get('/service-worker.js', (req, res) => {
+  res.sendFile(path.resolve(__dirname, 'service-worker.js'));
+});
+
+// Set up EJS as the view engine
+app.set('view engine', 'ejs');
+app.set('views', path.join(__dirname, 'public', 'views'));
+
+// Read the images from the 'boards' directory
+const boardsDirectory = path.join(__dirname, 'public', 'boards');
+
+const getBoardImages = async (dir = boardsDirectory, prefix = '') => {
+  let boardImages = [];
+  const files = fs.readdirSync(dir);
+
+  for (let file of files) {
+    const filePath = path.join(dir, file);
+    const stats = fs.statSync(filePath);
+
+    if (stats.isDirectory()) {
+      boardImages = [...boardImages, ...await getBoardImages(filePath, `${prefix}${file}/`)];
+    } else {
+      const extension = path.extname(file).toLowerCase();
+      if (extension === '.jpg' || extension === '.png' || extension === '.svg') {
+        const modalFilePath = path.join(dir, 'modal.json');
+        let modalContent = {};
+        try {
+          modalContent = JSON.parse(await readFile(modalFilePath, 'utf-8'));
+        } catch (err) {
+          console.error(err);
+        }
+        boardImages.push({ image: `${prefix}${file.slice(file.lastIndexOf('/') + 1)}`, modalContent });
+      }
+    }
+  }
+
+  return boardImages;
+};
+
+// Render the index page with the board images
+app.get('/', async (req, res) => {
+  const boardImages = await getBoardImages();
+  res.render('index', { activeView: 'boards', boardImages });
+});
+
+// Start the server
+const port = 7777;
+app.listen(port, () => {
+  console.log(`Server running on port ${port}`);
+});
+
+/* /Users/atgehrhardt/Dev/TableTap/package.json */
+{
+  "name": "tabletap",
+  "version": "1.0.0",
+  "description": "PWA that displays images from the 'boards' folder",
+  "main": "server.js",
+  "scripts": {
+    "start": "pm2 start app.js --name table-tap-games",
+    "stop": "pm2 delete table-tap-games",
+    "restart": "npm stop && npm start",
+    "dump": "node tools/codeDumpTool.js"
+  },
+  "keywords": [
+    "pwa",
+    "express",
+    "boards"
+  ],
+  "author": "TaitTechGaming",
+  "license": "MIT",
+  "dependencies": {
+    "ejs": "^3.1.9",
+    "express": "^4.18.2",
+    "pm2": "^5.3.0",
+    "potrace": "^2.1.8"
+  }
+}
+
+
+/* /Users/atgehrhardt/Dev/TableTap/public/boards/Chess/Chess.svg */
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="400" height="400">
+    <rect x="0" y="0" width="400" height="400" fill="#EEEED2" />
+    <g>
+        <!-- Board squares -->
+        <rect x="0" y="0" width="50" height="50" fill="#B58863" />
+        <rect x="50" y="0" width="50" height="50" fill="#F0D9B5" />
+        <rect x="100" y="0" width="50" height="50" fill="#B58863" />
+        <rect x="150" y="0" width="50" height="50" fill="#F0D9B5" />
+        <rect x="200" y="0" width="50" height="50" fill="#B58863" />
+        <rect x="250" y="0" width="50" height="50" fill="#F0D9B5" />
+        <rect x="300" y="0" width="50" height="50" fill="#B58863" />
+        <rect x="350" y="0" width="50" height="50" fill="#F0D9B5" />
+
+        <rect x="0" y="50" width="50" height="50" fill="#F0D9B5" />
+        <rect x="50" y="50" width="50" height="50" fill="#B58863" />
+        <rect x="100" y="50" width="50" height="50" fill="#F0D9B5" />
+        <rect x="150" y="50" width="50" height="50" fill="#B58863" />
+        <rect x="200" y="50" width="50" height="50" fill="#F0D9B5" />
+        <rect x="250" y="50" width="50" height="50" fill="#B58863" />
+        <rect x="300" y="50" width="50" height="50" fill="#F0D9B5" />
+        <rect x="350" y="50" width="50" height="50" fill="#B58863" />
+
+        <rect x="0" y="100" width="50" height="50" fill="#B58863" />
+        <rect x="50" y="100" width="50" height="50" fill="#F0D9B5" />
+        <rect x="100" y="100" width="50" height="50" fill="#B58863" />
+        <rect x="150" y="100" width="50" height="50" fill="#F0D9B5" />
+        <rect x="200" y="100" width="50" height="50" fill="#B58863" />
+        <rect x="250" y="100" width="50" height="50" fill="#F0D9B5" />
+        <rect x="300" y="100" width="50" height="50" fill="#B58863" />
+        <rect x="350" y="100" width="50" height="50" fill="#F0D9B5" />
+
+        <rect x="0" y="150" width="50" height="50" fill="#F0D9B5" />
+        <rect x="50" y="150" width="50" height="50" fill="#B58863" />
+        <rect x="100" y="150" width="50" height="50" fill="#F0D9B5" />
+        <rect x="150" y="150" width="50" height="50" fill="#B58863" />
+        <rect x="200" y="150" width="50" height="50" fill="#F0D9B5" />
+        <rect x="250" y="150" width="50" height="50" fill="#B58863" />
+        <rect x="300" y="150" width="50" height="50" fill="#F0D9B5" />
+        <rect x="350" y="150" width="50" height="50" fill="#B58863" />
+
+        <rect x="0" y="200" width="50" height="50" fill="#B58863" />
+        <rect x="50" y="200" width="50" height="50" fill="#F0D9B5" />
+        <rect x="100" y="200" width="50" height="50" fill="#B58863" />
+        <rect x="150" y="200" width="50" height="50" fill="#F0D9B5" />
+        <rect x="200" y="200" width="50" height="50" fill="#B58863" />
+        <rect x="250" y="200" width="50" height="50" fill="#F0D9B5" />
+        <rect x="300" y="200" width="50" height="50" fill="#B58863" />
+        <rect x="350" y="200" width="50" height="50" fill="#F0D9B5" />
+
+        <rect x="0" y="250" width="50" height="50" fill="#F0D9B5" />
+        <rect x="50" y="250" width="50" height="50" fill="#B58863" />
+        <rect x="100" y="250" width="50" height="50" fill="#F0D9B5" />
+        <rect x="150" y="250" width="50" height="50" fill="#B58863" />
+        <rect x="200" y="250" width="50" height="50" fill="#F0D9B5" />
+        <rect x="250" y="250" width="50" height="50" fill="#B58863" />
+        <rect x="300" y="250" width="50" height="50" fill="#F0D9B5" />
+        <rect x="350" y="250" width="50" height="50" fill="#B58863" />
+
+        <rect x="0" y="300" width="50" height="50" fill="#B58863" />
+        <rect x="50" y="300" width="50" height="50" fill="#F0D9B5" />
+        <rect x="100" y="300" width="50" height="50" fill="#B58863" />
+        <rect x="150" y="300" width="50" height="50" fill="#F0D9B5" />
+        <rect x="200" y="300" width="50" height="50" fill="#B58863" />
+        <rect x="250" y="300" width="50" height="50" fill="#F0D9B5" />
+        <rect x="300" y="300" width="50" height="50" fill="#B58863" />
+        <rect x="350" y="300" width="50" height="50" fill="#F0D9B5" />
+
+        <rect x="0" y="350" width="50" height="50" fill="#F0D9B5" />
+        <rect x="50" y="350" width="50" height="50" fill="#B58863" />
+        <rect x="100" y="350" width="50" height="50" fill="#F0D9B5" />
+        <rect x="150" y="350" width="50" height="50" fill="#B58863" />
+        <rect x="200" y="350" width="50" height="50" fill="#F0D9B5" />
+        <rect x="250" y="350" width="50" height="50" fill="#B58863" />
+        <rect x="300" y="350" width="50" height="50" fill="#F0D9B5" />
+        <rect x="350" y="350" width="50" height="50" fill="#B58863" />
+    </g>
+</svg>
+
+/* /Users/atgehrhardt/Dev/TableTap/public/boards/Chess/modal.json */
+{
+    "title": "Chess",
+    "description": "How to Play: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur cursus nulla non sem feugiat, eget blandit sem euismod. In eget efficitur libero, sed vehicula orci. Praesent feugiat dui at urna lacinia consequat. Duis laoreet diam id nulla congue tincidunt. Donec pellentesque risus et augue mollis, nec dapibus ante condimentum.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur cursus nulla non sem feugiat, eget blandit sem euismod. In eget efficitur libero, sed vehicula orci. Praesent feugiat dui at urna lacinia consequat. Duis laoreet diam id nulla congue tincidunt. Donec pellentesque risus et augue mollis, nec dapibus ante condimentum.Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur cursus nulla non sem feugiat, eget blandit sem euismod. In eget efficitur libero, sed vehicula orci. Praesent feugiat dui at urna lacinia consequat. Duis laoreet diam id nulla congue tincidunt. Donec pellentesque risus et augue mollis, nec dapibus ante condimentum."
+  }  
+
+/* /Users/atgehrhardt/Dev/TableTap/public/boards/Gin Rummy/Gin Rummy.svg */
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" viewBox="0 0 500 700">
+  <rect x="0" y="0" width="500" height="700" fill="#393e46" stroke="#393e46" />
+  <text x="250" y="350" font-family="Arial" font-size="240" text-anchor="middle" alignment-baseline="central" fill="white">&#x1F0A1;</text>
+</svg>
+
+/* /Users/atgehrhardt/Dev/TableTap/public/boards/Gin Rummy/modal.json */
+{
+    "title": "Gin Rummy",
+    "description": "How to Play: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur cursus nulla non sem feugiat, eget blandit sem euismod. In eget efficitur libero, sed vehicula orci. Praesent feugiat dui at urna lacinia consequat. Duis laoreet diam id nulla congue tincidunt. Donec pellentesque risus et augue mollis, nec dapibus ante condimentum."
+  }  
+
+/* /Users/atgehrhardt/Dev/TableTap/public/boards/Go/Go.svg */
+<svg xmlns="http://www.w3.org/2000/svg" version="1.1" width="500" height="500">
+    <rect x="0" y="0" width="500" height="500" fill="#F7CFA0" />
+    <g>
+        <!-- Vertical lines -->
+        <line x1="25" y1="25" x2="25" y2="475" stroke="black" stroke-width="1" />
+        <line x1="75" y1="25" x2="75" y2="475" stroke="black" stroke-width="1" />
+        <line x1="125" y1="25" x2="125" y2="475" stroke="black" stroke-width="1" />
+        <line x1="175" y1="25" x2="175" y2="475" stroke="black" stroke-width="1" />
+        <line x1="225" y1="25" x2="225" y2="475" stroke="black" stroke-width="1" />
+        <line x1="275" y1="25" x2="275" y2="475" stroke="black" stroke-width="1" />
+        <line x1="325" y1="25" x2="325" y2="475" stroke="black" stroke-width="1" />
+        <line x1="375" y1="25" x2="375" y2="475" stroke="black" stroke-width="1" />
+        <line x1="425" y1="25" x2="425" y2="475" stroke="black" stroke-width="1" />
+        <line x1="475" y1="25" x2="475" y2="475" stroke="black" stroke-width="1" />
+
+        <!-- Horizontal lines -->
+        <line x1="25" y1="25" x2="475" y2="25" stroke="black" stroke-width="1" />
+        <line x1="25" y1="75" x2="475" y2="75" stroke="black" stroke-width="1" />
+        <line x1="25" y1="125" x2="475" y2="125" stroke="black" stroke-width="1" />
+        <line x1="25" y1="175" x2="475" y2="175" stroke="black" stroke-width="1" />
+        <line x1="25" y1="225" x2="475" y2="225" stroke="black" stroke-width="1" />
+        <line x1="25" y1="275" x2="475" y2="275" stroke="black" stroke-width="1" />
+        <line x1="25" y1="325" x2="475" y2="325" stroke="black" stroke-width="1" />
+        <line x1="25" y1="375" x2="475" y2="375" stroke="black" stroke-width="1" />
+        <line x1="25" y1="425" x2="475" y2="425" stroke="black" stroke-width="1" />
+        <line x1="25" y1="475" x2="475" y2="475" stroke="black" stroke-width="1" />
+
+        <!-- Star points -->
+        <circle cx="125" cy="125" r="5" fill="black" />
+        <circle cx="375" cy="125" r="5" fill="black" />
+        <circle cx="125" cy="375" r="5" fill="black" />
+        <circle cx="375" cy="375" r="5" fill="black" />
+        <circle cx="250" cy="250" r="5" fill="black" />
+    </g>
+</svg>
+
+/* /Users/atgehrhardt/Dev/TableTap/public/boards/Go/modal.json */
+{
+    "title": "Go",
+    "description": "How to Play: Lorem ipsum dolor sit amet, consectetur adipiscing elit. Curabitur cursus nulla non sem feugiat, eget blandit sem euismod. In eget efficitur libero, sed vehicula orci. Praesent feugiat dui at urna lacinia consequat. Duis laoreet diam id nulla congue tincidunt. Donec pellentesque risus et augue mollis, nec dapibus ante condimentum."
+  }  
+
+/* /Users/atgehrhardt/Dev/TableTap/public/manifest.json */
+{
+    "name": "TableTapGames",
+    "short_name": "TableTap",
+    "description": "PWA that displays images from the 'boards' folder",
+    "start_url": "/",
+    "display": "standalone",
+    "background_color": "#222831",
+    "theme_color": "#00adb5",
+    "icons": [
+      {
+        "src": "resources/icons/tabletap192.png",
+        "sizes": "192x192",
+        "type": "image/png"
+      },
+      {
+        "src": "resources/icons/tabletap512.png",
+        "sizes": "512x512",
+        "type": "image/png"
+      }
+    ]
+  }  
+
+/* /Users/atgehrhardt/Dev/TableTap/public/resources/back-button.svg */
+<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24">
+  <path fill="#fff" d="M15.5 2c0.4 0 0.7 0.2 0.9 0.6s0.2 0.9-0.1 1.3l-9 9 9 9c0.4 0.4 0.5 0.9 0.1 1.3s-0.9 0.5-1.3 0.1l-10-10c-0.4-0.4-0.4-1 0-1.4l10-10c0.2-0.4 0.5-0.6 0.9-0.6z"/>
+</svg>
+
+/* /Users/atgehrhardt/Dev/TableTap/public/resources/game-modal.svg */
+<svg xmlns="http://www.w3.org/2000/svg" width="75" height="75" viewBox="0 0 75 75" id="game-modal-content">
+  <circle cx="37.5" cy="37.5" r="30" fill="white" />
+</svg>
+
+/* /Users/atgehrhardt/Dev/TableTap/public/styles.css */
+:root {
+    --color-background: #222831;
+    --color-text: #ffffff;
+    --color-border: #393e46;
+    --color-accent: #00adb5;
+    --color-fullscreen-bg: #121212;
+  }
+  
+  html, body {
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    overflow-y: scroll;
+  }
+  
+  .title {
+    font-size: 48px;
+    font-family: "Roboto", sans-serif;
+    text-align: center;
+    margin-top: 50px;
+    margin-bottom: 20px;
+    color: var(--color-text);
+  }
+
+  .search-bar {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
+  
+  .search-bar input {
+    width: 300px;
+    height: 30px;
+    padding: 5px;
+    font-size: 16px;
+    background-color: var(--color-background);
+    color: var(--color-text);
+    border: 2px solid var(--color-border);
+  }
+
+  .board-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .board {
+    position: relative;
+    width: 250px;
+    height: 250px;
+    margin: 10px;
+    overflow: hidden;
+    transition: all 0.3s ease;
+    border: 2px solid var(--color-border);
+  }
+
+  .board.full-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    z-index: 9999;
+    background-color: var(--color-fullscreen-bg);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+  }
+
+  .board.full-screen img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+  }
+
+  .board img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  /* Updated styles for the file name */
+  .board .file-name {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    color: var(--color-text);
+    font-size: 27px;
+    padding: 5px;
+    box-sizing: border-box;
+    font-family: "Roboto", sans-serif;
+    text-align: center;
+  }
+  
+  .back-button {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    z-index: 99999;
+    display: none;
+    cursor: pointer;
+  }
+  
+  .back-button.show {
+    display: block;
+  }
+
+  .game-modal {
+    position: fixed;
+    top: 10px;
+    right: 10px;
+    z-index: 99999;
+    display: none;
+    cursor: pointer;
+  }
+  
+  .game-modal.show {
+    display: block;
+  }
+  .modal {
+    display: none;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background-color: rgba(0, 0, 0, 0.5);
+    width: 700px;
+    height: 500px;
+    border-radius: 5px;
+    padding: 20px;
+    text-align: center;
+    z-index: 99999;
+    color: #fff;
+    overflow-y: scroll;
+  }
+
+  .modal.show {
+    display: block;
+  }
+
+/* /Users/atgehrhardt/Dev/TableTap/public/views/index.ejs */
+<!DOCTYPE html>
+<html>
+<head>
+  <title>TableTap</title>
+  <link rel="stylesheet" type="text/css" href="/styles.css">
+  <link rel="manifest" href="/manifest.json">
+<script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('/service-worker.js')
+      .then((registration) => {
+        console.log('Service Worker registered');
+      })
+      .catch((error) => {
+        console.error('Error registering Service Worker:', error);
+      });
+  }
+</script>
+</head>
+<body>
+  <div class="title">TableTap</div>
+
+  <div class="search-bar">
+    <input id="search-input" type="text" placeholder="Search...">
+  </div>
+
+  <div class="board-container">
+    <% boardImages.forEach(({ image, modalContent }) => {
+  const fileName = image.slice(image.lastIndexOf('/') + 1, image.lastIndexOf('.'));
+  %>
+      <div class="board" data-modal='<%- JSON.stringify(modalContent) %>'>
+        <img src="/boards/<%= image %>" alt="Board Image" />
+        <span class="file-name"><%= fileName %></span>
+      </div>
+    <% }); %>
+  </div>
+
+  <div id="back-button" class="back-button">
+    <img src="/resources/back-button.svg" alt="Back Button" width="75px" height="75px">
+  </div>
+
+  <!-- Add the popup modal -->
+  <div id="game-modal" class="game-modal">
+    <img src="/resources/game-modal.svg" alt="Game Modal" width="75px" height="75px">
+  </div>
+
+  <!-- Add the modal content -->
+<div id="modal-content" class="modal">
+  <h2 id="modal-title">Popup Modal</h2>
+  <p id="modal-description">This is a popup modal in the center of the screen.</p>
+</div>
+
+  <script>
+    const boards = document.querySelectorAll('.board');
+    const searchInput = document.getElementById('search-input');
+    let timeout;
+    let isFullScreen = false;
+    let fullScreenBoard = null;
+
+    function filterBoards() {
+      const searchText = searchInput.value.toLowerCase();
+      boards.forEach(board => {
+        const boardName = board.querySelector('.file-name').textContent.toLowerCase();
+        if (boardName.includes(searchText)) {
+          board.style.display = 'block';
+        } else {
+          board.style.display = 'none';
+        }
+      });
+    }
+
+    searchInput.addEventListener('input', () => {
+      clearTimeout(timeout);
+      timeout = setTimeout(filterBoards, 300);
+    });
+
+    boards.forEach(board => {
+      board.addEventListener('click', () => {
+        if (isFullScreen) {
+          fullScreenBoard.remove();
+          document.getElementById('back-button').classList.remove('show');
+          document.getElementById('game-modal').classList.remove('show');
+          clearTimeout(timeout);
+          isFullScreen = false;
+        } else {
+          fullScreenBoard = board.cloneNode(true);
+          fullScreenBoard.classList.add('full-screen');
+          fullScreenBoard.querySelector('.file-name').style.display = 'none';
+          document.body.appendChild(fullScreenBoard);
+          document.getElementById('back-button').classList.add('show');
+          document.getElementById('game-modal').classList.add('show');
+          isFullScreen = true;
+        }
+      });
+    });
+
+    document.getElementById('back-button').addEventListener('click', () => {
+      if (isFullScreen) {
+        fullScreenBoard.remove();
+        document.getElementById('back-button').classList.remove('show');
+        document.getElementById('game-modal').classList.remove('show');
+        clearTimeout(timeout);
+        isFullScreen = false;
+      }
+    });
+
+  const modal = document.getElementById('game-modal');
+  const modalContent = document.getElementById('modal-content');
+  const modalTitle = document.getElementById('modal-title');
+  const modalDescription = document.getElementById('modal-description');
+
+  // Show the popup modal
+  modal.addEventListener('click', (event) => {
+    event.stopPropagation(); // Prevent dismissing when clicking inside the modal
+    modalContent.classList.add('show');
+  });
+
+  // Close the popup modal when clicking outside
+  window.addEventListener('click', (event) => {
+    if (!modalContent.contains(event.target)) {
+      modalContent.classList.remove('show');
+    }
+  });
+
+  // Update modal content based on the current board
+  boards.forEach(board => {
+    board.addEventListener('click', () => {
+      if (!modalContent.classList.contains('show')) {
+        const modalData = JSON.parse(board.dataset.modal);
+        modalTitle.textContent = modalData.title;
+        modalDescription.textContent = modalData.description;
+      }
+    });
+  });
+  </script>
+</body>
+</html>
+
+/* /Users/atgehrhardt/Dev/TableTap/service-worker.js */
+// Update the cache name when the service worker changes.
+const CACHE_NAME = 'my-cache-v1'; 
+const urlsToCache = [
+  '/'
+];
+
+// Build cache on local device with paths defined above
+self.addEventListener('install', function(event) {
+  event.waitUntil(
+    caches.open(CACHE_NAME)
+      .then(function(cache) {
+        console.log('Opened cache');
+        return cache.addAll(urlsToCache);
+      })
+  );
+});
+
+// Updates the cache for the boards directory as the rest of the app should not change, so we update cache for boards to save data
+self.addEventListener('fetch', function(event) {
+  // Check if the request is for the 'boards' directory or its subdirectories
+  if (event.request.url.includes('boards')) {
+    // Fetch the new data and cache it
+    event.respondWith(
+      fetch(event.request).then(function(response) {
+        // Check if we received a valid response
+        if (!response || response.status !== 200 || response.type !== 'basic') {
+          return response;
+        }
+
+        // Clone the response for caching
+        var responseToCache = response.clone();
+
+        // Open the cache and store the new response
+        caches.open(CACHE_NAME)
+          .then(function(cache) {
+            cache.put(event.request, responseToCache);
+          });
+
+        return response;
+      })
+    );
+  } else {
+    // Handle fetch events for URLs that aren't in the 'boards' directory or its subdirectories
+    event.respondWith(
+      caches.match(event.request)
+        .then(function(response) {
+          // Cache hit - return response
+          if (response) {
+            return response;
+          }
+          return fetch(event.request).then(
+            function(response) {
+              // Check if we received a valid response
+              if(!response || response.status !== 200 || response.type !== 'basic') {
+                return response;
+              }
+
+              // Clone the response for caching
+              var responseToCache = response.clone();
+
+              caches.open(CACHE_NAME)
+                .then(function(cache) {
+                  cache.put(event.request, responseToCache);
+                });
+
+              return response;
+            }
+          );
+        })
+      );
+  }
+});
+
+self.addEventListener('activate', function(event) {
+  // Define a list of the caches you want to keep.
+  var cacheWhitelist = [CACHE_NAME];
+
+  event.waitUntil(
+    caches.keys().then(function(cacheNames) {
+      return Promise.all(
+        cacheNames.map(function(cacheName) {
+          // Delete the caches that aren't in your whitelist.
+          if (cacheWhitelist.indexOf(cacheName) === -1) {
+            return caches.delete(cacheName);
+          }
+        })
+      );
+    }).then(() => {
+      // After the activation and claiming is complete, force a page refresh.
+      if (self.clients.claim) {
+        self.clients.claim();
+        self.clients.matchAll().then(clients => {
+          clients.forEach(client => client.navigate(client.url))
+        });
+      }
+    })
+  );
+});
+
+/* /Users/atgehrhardt/Dev/TableTap/tools/codeDumpTool.js */
+const fs = require('fs');
+const path = require('path');
+
+// Function to walk through directory
+function walkDirectory(directory, callback) {
+    fs.readdirSync(directory).forEach((file) => {
+        const absolutePath = path.join(directory, file);
+
+        // Ignore node_modules, .git, package-lock.json, and .DS_Store
+        if (absolutePath.includes('node_modules') || absolutePath.includes('.git') ||
+            absolutePath.includes('package-lock.json') || absolutePath.includes('.DS_Store')) return;
+
+        if (fs.statSync(absolutePath).isDirectory()) {
+            // Recursive call for sub-directory
+            walkDirectory(absolutePath, callback);
+        } else {
+            callback(absolutePath);
+        }
+    });
+}
+
+// Create a directory chart
+let directoryChart = '--- Directory Chart ---\n';
+
+function createDirectoryChart(directory) {
+    walkDirectory(directory, (filePath) => {
+        const relativePath = path.relative(__dirname, filePath);
+        directoryChart += relativePath + '\n';
+    });
+}
+
+// Function to import all code from files
+let allCode = '\n--- Code ---\n';
+
+function importAllCode(directory) {
+    walkDirectory(directory, (filePath) => {
+        // Ignore image files when importing code
+        if (!['.png', '.jpg', '.jpeg', '.gif'].includes(path.extname(filePath))) {
+            const code = fs.readFileSync(filePath, 'utf8');
+            allCode += `/* ${filePath} */\n${code}\n\n`;
+        }
+    });
+}
+
+// Main directory (one directory above the current directory)
+const mainDirectory = path.resolve(__dirname, '..');
+
+createDirectoryChart(mainDirectory);
+importAllCode(mainDirectory);
+
+// Write all data to a single file
+fs.writeFileSync('project_info.txt', directoryChart + allCode);
+

@@ -1,5 +1,5 @@
 {
-    "name": "TableTap",
+    "name": "TableTapGames",
     "short_name": "TableTap",
     "description": "PWA that displays images from the 'boards' folder",
     "start_url": "/",

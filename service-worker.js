@@ -1,9 +1,10 @@
 // Update the cache name when the service worker changes.
-const CACHE_NAME = 'my-cache-v2'; 
+const CACHE_NAME = 'my-cache-v1'; 
 const urlsToCache = [
   '/'
 ];
 
+// Build cache on local device with paths defined above
 self.addEventListener('install', function(event) {
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -14,6 +15,7 @@ self.addEventListener('install', function(event) {
   );
 });
 
+// Updates the cache for the boards directory as the rest of the app should not change, so we update cache for boards to save data
 self.addEventListener('fetch', function(event) {
   // Check if the request is for the 'boards' directory or its subdirectories
   if (event.request.url.includes('boards')) {
